@@ -19,5 +19,4 @@ const post = (props) =>
 );}
 
 // export default withRouter(post); //Get props of router from top level to childs
-
 export default post

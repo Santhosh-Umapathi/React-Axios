@@ -1,14 +1,38 @@
-import React, { Component } from 'react';
-import { Link, Route } from 'react-router-dom'
+import React, { Component, Fragment, lazy, Suspense } from 'react';
+import { Link, Route, NavLink, Switch, Redirect } from 'react-router-dom'
 
 //Pages
 import Posts from '../Posts/Posts';
-import NewPost from '../NewPost/NewPost'
+// import NewPost from '../NewPost/NewPost'
+import FullPost from '../FullPost/FullPost'
 import './Blog.css';
+
+import LazyLoading from '../../hoc/LazyLoading'
+
+//React <16.6 
+const AsyncNewPost = LazyLoading(() =>
+{
+    return import('../NewPost/NewPost')
+})
+
+//React >16.6
+const LazyNewPost = lazy(() => import('../NewPost/NewPost'))
+
+//Usage
+/*< Route path = "/posts/" render = {() =>
+{
+    return <Suspense fallback = {<div>Loading...</div>}>
+        <LazyNewPost />
+    </Suspense>
+}}/>*/ 
+
 
 class Blog extends Component
 {
     
+    state = {
+        authenticated:true
+    }
     
 
 
@@ -23,19 +47,24 @@ class Blog extends Component
                         <ul>
                             <li>
                                 {/* <a href='/'>Home</a> */}
-                                <Link to = "/">Home</Link>
+                                <NavLink
+                                    exact
+                                    to="/posts/"
+                                    activeClassName="my-active" //To overwrite css
+                                    activeStyle = {{color:"orange", textDecoration:'underline'}}
+                                >Home</NavLink>
                             </li>
                             <li>
                                 {/* <a href='/new-post'>New Post</a> */}
-                                <Link
+                                <NavLink
                                     to={{
-                                        pathname: '/new-post',
+                                        pathname: /*this.props.match.url +*/ '/new-post', //Relative Path(appends to current path) || '/new-post' absolute path appends directly to domain
                                         hash: '#submit', //if needed hash value in the end
                                         search:'?query=true' // if needed search query in the end
                                     }}
                                 >
                                     New Post
-                                </Link>
+                                </NavLink>
                             </li>
                         </ul>
                     </nav>
@@ -46,8 +75,13 @@ class Blog extends Component
                 <Route path = "/"  render = {() => <h1>Route 2</h1>} /> */ } 
 
                 {/*Production cases*/}
-                <Route path="/" exact component={Posts} />
-                <Route path = "/new-post" exact component = {NewPost} />
+                <Switch>
+                    {this.state.authenticated ? <Route path="/new-post" exact component={AsyncNewPost} /> : null}
+                    <Route path="/posts/" component={Posts} />
+                    {/* <Route render = {() => <h1>Not Found</h1>} /> */}
+                    <Redirect from = "/" to="/posts"/>
+
+                </Switch>
 
         
             </div>
